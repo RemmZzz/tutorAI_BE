@@ -17,56 +17,68 @@ public class UserController {
 
     private final UserService userService;
 
-    // ADMIN - Lấy danh sách user (filter theo role/status)
+    //  ADMIN - Lấy danh sách user (filter theo role/status)
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping
-    public List<UserResponse> getAllUsers(
+    public ResponseEntity<List<UserResponse>> getAllUsers(
             @RequestParam(required = false) User.Role role,
             @RequestParam(required = false) User.Status status) {
-        return userService.getAllUsers(role, status);
+        return ResponseEntity.ok(userService.getAllUsers(role, status));
     }
 
-    // ADMIN - Lấy user theo ID
+    //  ADMIN - Lấy user theo ID
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/{id}")
-    public UserResponse getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
-    // Tất cả user - Lấy hồ sơ bản thân
+    //  USER / ADMIN - Lấy hồ sơ bản thân
     @GetMapping("/me")
-    public UserResponse getMyProfile() {
-        return userService.getMyProfile();
+    public ResponseEntity<UserResponse> getMyProfile() {
+        return ResponseEntity.ok(userService.getMyProfile());
     }
 
-    // Tất cả user - Cập nhật hồ sơ bản thân
+    //  USER / ADMIN - Cập nhật hồ sơ bản thân
     @PutMapping("/me")
-    public UserResponse updateMyProfile(@RequestBody UserUpdateRequest req) {
-        return userService.updateMyProfile(req);
+    public ResponseEntity<UserResponse> updateMyProfile(@RequestBody UserUpdateRequest req) {
+        return ResponseEntity.ok(userService.updateMyProfile(req));
     }
 
-    // ADMIN - Cập nhật user khác
+    //  ADMIN - Cập nhật user khác
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{id}")
-    public UserResponse updateUserByAdmin(@PathVariable Long id, @RequestBody AdminUpdateUserRequest req) {
-        return userService.updateUserByAdmin(id, req);
+    public ResponseEntity<UserResponse> updateUserByAdmin(
+            @PathVariable Long id,
+            @RequestBody AdminUpdateUserRequest req
+    ) {
+        return ResponseEntity.ok(userService.updateUserByAdmin(id, req));
     }
 
-    // Admin - Xoá mềm (vô hiệu hoá)
+    //  ADMIN - Xoá mềm (vô hiệu hoá)
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ResponseEntity.ok("User deactivated successfully");
+        try {
+            userService.deleteUser(id);
+            return ResponseEntity.ok("✅ User deactivated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(" Failed to deactivate user: " + e.getMessage());
+        }
     }
 
-    //  Admin - Xoá cứng (xoá khỏi DB)
+    //  ADMIN - Xoá cứng (xoá khỏi DB + xoá dữ liệu liên quan)
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}/permanent")
     public ResponseEntity<String> hardDeleteUser(@PathVariable Long id) {
-        userService.hardDeleteUser(id);
-        return ResponseEntity.ok("User permanently deleted from database");
+        try {
+            userService.hardDeleteUser(id);
+            return ResponseEntity.ok("✅ User permanently deleted from database");
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            return ResponseEntity.status(409).body("⚠️ Cannot delete user due to related data (foreign key constraint). Please remove related records first.");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(" Failed to delete user: " + e.getMessage());
+        }
     }
 
 }
-

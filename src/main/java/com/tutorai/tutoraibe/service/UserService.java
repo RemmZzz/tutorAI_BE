@@ -2,6 +2,7 @@ package com.tutorai.tutoraibe.service;
 
 import com.tutorai.tutoraibe.dto.*;
 import com.tutorai.tutoraibe.entity.User;
+import com.tutorai.tutoraibe.repository.PasswordResetTokenRepository;
 import com.tutorai.tutoraibe.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -15,6 +16,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
 
     // Lấy user hiện tại từ JWT
     private User getCurrentUser() {
@@ -72,9 +74,11 @@ public class UserService {
 
     // Admin xoá cứng - xóa hoàn toàn khỏi DB
     public void hardDeleteUser(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        userRepository.delete(user);
+        // 1️ Xoá các token reset mật khẩu (liên kết tới user)
+        passwordResetTokenRepository.deleteByUserId(id);
+
+        // 2️ Sau đó xoá user
+        userRepository.deleteById(id);
     }
 
 }
