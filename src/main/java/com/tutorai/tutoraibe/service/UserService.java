@@ -9,7 +9,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +16,7 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    // Lấy user hiện tại từ JWT
     private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
@@ -24,23 +24,25 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+    // Lấy tất cả user (filter)
     public List<UserResponse> getAllUsers(User.Role role, User.Status status) {
         return userRepository.findAllByRoleAndStatus(role, status)
-                .stream()
-                .map(UserResponse::fromEntity)
-                .toList();
+                .stream().map(UserResponse::fromEntity).toList();
     }
 
+    // Lấy user theo ID
     public UserResponse getUserById(Long id) {
         return userRepository.findById(id)
                 .map(UserResponse::fromEntity)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+    // Lấy hồ sơ bản thân
     public UserResponse getMyProfile() {
         return UserResponse.fromEntity(getCurrentUser());
     }
 
+    // Cập nhật hồ sơ bản thân
     public UserResponse updateMyProfile(UserUpdateRequest req) {
         User user = getCurrentUser();
         if (req.getFullName() != null) user.setFullName(req.getFullName());
@@ -50,6 +52,7 @@ public class UserService {
         return UserResponse.fromEntity(user);
     }
 
+    // Admin cập nhật user khác
     public UserResponse updateUserByAdmin(Long id, AdminUpdateUserRequest req) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -58,4 +61,13 @@ public class UserService {
         userRepository.save(user);
         return UserResponse.fromEntity(user);
     }
+
+    // Admin xoá user (soft delete)
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setStatus(User.Status.INACTIVE);
+        userRepository.save(user);
+    }
 }
+
