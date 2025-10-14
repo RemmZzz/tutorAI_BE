@@ -25,7 +25,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/v1/auth/**",   // public endpoints
-                                "/actuator/**"       // health check (optional)
+                                "/actuator/**",     // health check (optional)
+                                "/api/v1/users/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
