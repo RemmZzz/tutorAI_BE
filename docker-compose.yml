@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  # ==========================
+  # SPRING BOOT BACKEND
+  # ==========================
+  backend:
+    build: .
+    container_name: tutorai-be
+    ports:
+      - "9000:9000"
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+      SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL}
+      SERVER_PORT: ${SERVER_PORT}
+    networks:
+      - tutorai-network
+
+networks:
+  tutorai-network:
+    driver: bridge
