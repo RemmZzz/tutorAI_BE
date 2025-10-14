@@ -62,12 +62,20 @@ public class UserService {
         return UserResponse.fromEntity(user);
     }
 
-    // Admin xoá user (soft delete)
+    // Admin xoá mềm - giữ lại trong DB
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setStatus(User.Status.INACTIVE);
         userRepository.save(user);
     }
+
+    // Admin xoá cứng - xóa hoàn toàn khỏi DB
+    public void hardDeleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        userRepository.delete(user);
+    }
+
 }
 

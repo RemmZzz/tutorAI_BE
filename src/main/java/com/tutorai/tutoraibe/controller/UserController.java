@@ -52,12 +52,21 @@ public class UserController {
         return userService.updateUserByAdmin(id, req);
     }
 
-    // ADMIN - Xoá user
+    // Admin - Xoá mềm (vô hiệu hoá)
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.ok("User deactivated successfully");
     }
+
+    //  Admin - Xoá cứng (xoá khỏi DB)
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @DeleteMapping("/{id}/permanent")
+    public ResponseEntity<String> hardDeleteUser(@PathVariable Long id) {
+        userService.hardDeleteUser(id);
+        return ResponseEntity.ok("User permanently deleted from database");
+    }
+
 }
 
