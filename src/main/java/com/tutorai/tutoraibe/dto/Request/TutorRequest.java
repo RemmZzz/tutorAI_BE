@@ -1,16 +1,13 @@
-package com.tutorai.tutoraibe.dto;
+package com.tutorai.tutoraibe.dto.Request;
 
 import lombok.*;
 
 @Getter
 @Setter
-@Builder
-public class TutorResponse {
-    private Long id;
+public class TutorRequest {
     private String fullName;
     private String subject;
     private Integer experienceYears;
     private Double hourlyRate;
     private String bio;
-    private String status;
 }

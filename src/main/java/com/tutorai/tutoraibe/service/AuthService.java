@@ -1,6 +1,7 @@
 package com.tutorai.tutoraibe.service;
 
-import com.tutorai.tutoraibe.dto.*;
+import com.tutorai.tutoraibe.dto.Request.*;
+import com.tutorai.tutoraibe.dto.Response.AuthResponse;
 import com.tutorai.tutoraibe.entity.*;
 import com.tutorai.tutoraibe.repository.*;
 import lombok.RequiredArgsConstructor;

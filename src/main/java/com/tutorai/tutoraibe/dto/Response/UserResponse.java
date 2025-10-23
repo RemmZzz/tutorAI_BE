@@ -1,4 +1,4 @@
-package com.tutorai.tutoraibe.dto;
+package com.tutorai.tutoraibe.dto.Response;
 
 import com.tutorai.tutoraibe.entity.User;
 import lombok.*;

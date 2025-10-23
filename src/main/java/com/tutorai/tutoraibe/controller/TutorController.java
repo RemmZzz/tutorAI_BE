@@ -1,6 +1,6 @@
 package com.tutorai.tutoraibe.controller;
 
-import com.tutorai.tutoraibe.dto.*;
+import com.tutorai.tutoraibe.dto.Request.TutorRequest;
 import com.tutorai.tutoraibe.entity.Tutor;
 import com.tutorai.tutoraibe.entity.User;
 import com.tutorai.tutoraibe.service.TutorService;

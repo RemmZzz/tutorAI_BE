@@ -1,6 +1,8 @@
 package com.tutorai.tutoraibe.controller;
 
-import com.tutorai.tutoraibe.dto.*;
+import com.tutorai.tutoraibe.dto.Request.AdminUpdateUserRequest;
+import com.tutorai.tutoraibe.dto.Request.UserUpdateRequest;
+import com.tutorai.tutoraibe.dto.Response.UserResponse;
 import com.tutorai.tutoraibe.entity.User;
 import com.tutorai.tutoraibe.service.UserService;
 import lombok.RequiredArgsConstructor;

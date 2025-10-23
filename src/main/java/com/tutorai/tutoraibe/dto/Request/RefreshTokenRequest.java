@@ -1,4 +1,4 @@
-package com.tutorai.tutoraibe.dto;
+package com.tutorai.tutoraibe.dto.Request;
 
 import lombok.Getter; import lombok.Setter;
 import jakarta.validation.constraints.NotBlank;

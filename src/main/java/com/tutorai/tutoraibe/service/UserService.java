@@ -1,6 +1,8 @@
 package com.tutorai.tutoraibe.service;
 
-import com.tutorai.tutoraibe.dto.*;
+import com.tutorai.tutoraibe.dto.Request.AdminUpdateUserRequest;
+import com.tutorai.tutoraibe.dto.Request.UserUpdateRequest;
+import com.tutorai.tutoraibe.dto.Response.UserResponse;
 import com.tutorai.tutoraibe.entity.User;
 import com.tutorai.tutoraibe.repository.PasswordResetTokenRepository;
 import com.tutorai.tutoraibe.repository.UserRepository;

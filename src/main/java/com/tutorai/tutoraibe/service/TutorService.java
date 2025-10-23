@@ -1,6 +1,6 @@
 package com.tutorai.tutoraibe.service;
 
-import com.tutorai.tutoraibe.dto.*;
+import com.tutorai.tutoraibe.dto.Request.TutorRequest;
 import com.tutorai.tutoraibe.entity.*;
 import com.tutorai.tutoraibe.repository.TutorRepository;
 import jakarta.persistence.criteria.Predicate;

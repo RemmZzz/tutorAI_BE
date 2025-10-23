@@ -1,6 +1,7 @@
 package com.tutorai.tutoraibe.controller;
 
-import com.tutorai.tutoraibe.dto.*;
+import com.tutorai.tutoraibe.dto.Request.*;
+import com.tutorai.tutoraibe.dto.Response.AuthResponse;
 import com.tutorai.tutoraibe.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
