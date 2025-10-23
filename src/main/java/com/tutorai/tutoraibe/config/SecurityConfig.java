@@ -11,6 +11,13 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * ===============================================
+ *             SECURITY CONFIGURATION
+ * Cấu hình bảo mật tổng thể cho toàn bộ hệ thống
+ * Phiên bản cập nhật theo danh sách module & endpoints
+ * ===============================================
+ */
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -21,25 +28,78 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // Tắt CSRF vì đây là REST API
                 .csrf(csrf -> csrf.disable())
+
                 .authorizeHttpRequests(auth -> auth
+                        // ========================
+                        // 1️ Public Endpoints (không yêu cầu JWT)
+                        // ========================
                         .requestMatchers(
-                                "/api/v1/auth/**",   // public endpoints
-                                "/actuator/**",     // health check (optional)
-                                "/api/v1/users/**"
+                                // Auth
+                                "/auth/**",
+                                // Tutors (tìm kiếm & xem hồ sơ)
+                                "/tutors/search",
+                                "/tutors/{id}",
+                                // Subjects
+                                "/subjects",
+                                "/subjects/{id}",
+                                // Courses (xem danh sách & chi tiết)
+                                "/courses",
+                                "/courses/{id}",
+                                "/courses/{id}/lessons",
+                                // Blogs & FAQs
+                                "/blogs/**",
+                                "/faqs/**",
+                                // Health check & Docs
+                                "/actuator/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
                         ).permitAll()
-                        .anyRequest().authenticated()
+
+                        // ========================
+                        // 2️ Admin Endpoints (chỉ ADMIN)
+                        // ========================
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                        // ========================
+                        // 3️ Authenticated Endpoints (yêu cầu JWT)
+                        // ========================
+                        .requestMatchers(
+                                "/users/**",
+                                "/students/**",
+                                "/tutors/**",
+                                "/courses/**",
+                                "/enrollments/**",
+                                "/bookings/**",
+                                "/schedules/**",
+                                "/payments/**",
+                                "/transactions/**",
+                                "/reviews/**",
+                                "/ai/**",
+                                "/notifications/**",
+                                "/wishlist/**",
+                                "/certificates/**"
+                        ).authenticated()
+
+                        // ========================
+                        // 4️ Mặc định: chặn tất cả còn lại
+                        // ========================
+                        .anyRequest().denyAll()
                 )
-                // JWT => Stateless session
+
+                // Stateless (chuẩn RESTful API)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                // Add JWT filter
+
+                // Thêm JWT filter trước UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
+    // AuthenticationManager dùng trong AuthService (login)
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();

@@ -15,8 +15,10 @@ import java.util.List;
 @RequestMapping("/api/tutors")
 @RequiredArgsConstructor
 public class TutorController {
+
     private final TutorService tutorService;
 
+    // Tìm kiếm gia sư theo tên, môn học hoặc mức giá
     @GetMapping("/search")
     public ResponseEntity<List<Tutor>> search(
             @RequestParam(required = false) String keyword,
@@ -26,35 +28,41 @@ public class TutorController {
         return ResponseEntity.ok(tutorService.search(keyword, subject, minRate, maxRate));
     }
 
+    // Lấy thông tin chi tiết 1 gia sư theo ID
     @GetMapping("/{id}")
     public ResponseEntity<Tutor> getTutor(@PathVariable Long id) {
         return ResponseEntity.ok(tutorService.getById(id));
     }
 
+    // Tạo hồ sơ gia sư mới (dành cho người dùng có vai trò TUTOR)
     @PostMapping
     @PreAuthorize("hasRole('TUTOR')")
     public ResponseEntity<Tutor> create(@RequestBody TutorRequest request, @RequestAttribute("user") User user) {
         return ResponseEntity.ok(tutorService.createTutor(user, request));
     }
 
+    // Cập nhật hồ sơ gia sư (TUTOR hoặc ADMIN đều có thể sửa)
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('TUTOR','ADMIN')")
     public ResponseEntity<Tutor> update(@PathVariable Long id, @RequestBody TutorRequest request) {
         return ResponseEntity.ok(tutorService.updateTutor(id, request));
     }
 
+    // Duyệt hồ sơ gia sư (ADMIN duyệt khi hồ sơ được gửi lên)
     @PatchMapping("/{id}/approve")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Tutor> approve(@PathVariable Long id) {
         return ResponseEntity.ok(tutorService.approve(id));
     }
 
+    // Ẩn hồ sơ gia sư (ADMIN có thể ẩn khi vi phạm)
     @PatchMapping("/{id}/hide")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Tutor> hide(@PathVariable Long id) {
         return ResponseEntity.ok(tutorService.hide(id));
     }
 
+    // Xóa hồ sơ gia sư (chỉ ADMIN)
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
