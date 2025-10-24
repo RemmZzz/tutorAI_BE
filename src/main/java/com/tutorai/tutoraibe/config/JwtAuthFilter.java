@@ -1,57 +1,37 @@
 package com.tutorai.tutoraibe.config;
 
-import com.tutorai.tutoraibe.service.CustomUserDetailsService;
+import com.tutorai.tutoraibe.repository.UserRepository;
 import com.tutorai.tutoraibe.service.JwtService;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
+import java.util.List;
 
-@Component
-@RequiredArgsConstructor
-public class JwtAuthFilter extends OncePerRequestFilter {
-
+@Component @RequiredArgsConstructor
+public class JwtAuthFilter extends GenericFilter {
     private final JwtService jwtService;
-    private final CustomUserDetailsService userDetailsService;
+    private final UserRepository userRepo;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
-
-        final String authHeader = request.getHeader("Authorization");
-
-        // Nếu không có token => bỏ qua để tiếp tục các endpoint public (register/verify)
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        final String token = authHeader.substring(7);
-        try {
-            String email = jwtService.extractEmail(token);
-            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                var userDetails = userDetailsService.loadUserByUsername(email);
-                if (jwtService.isValid(token, userDetails.getUsername())) {
-                    var authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        HttpServletRequest req = (HttpServletRequest) request;
+        String auth = req.getHeader("Authorization");
+        if (auth != null && auth.startsWith("Bearer ")) {
+            String token = auth.substring(7);
+            try {
+                String email = jwtService.extractEmail(token);
+                var userOpt = userRepo.findByEmail(email);
+                if (userOpt.isPresent() && jwtService.isValid(token, email)) {
+                    var authToken = new UsernamePasswordAuthenticationToken(email, null, List.of());
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
-            }
-        } catch (Exception e) {
-            System.err.println("❌ JWT error: " + e.getMessage());
-            e.printStackTrace(); // In ra stacktrace chi tiết (optional)
+            } catch (Exception ignored) {}
         }
-        filterChain.doFilter(request, response);
+        chain.doFilter(request, response);
     }
 }

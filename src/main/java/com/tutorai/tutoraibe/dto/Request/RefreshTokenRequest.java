@@ -1,9 +1,9 @@
 package com.tutorai.tutoraibe.dto.Request;
 
-import lombok.Getter; import lombok.Setter;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 
-@Getter @Setter
+@Data
 public class RefreshTokenRequest {
     @NotBlank private String refreshToken;
 }

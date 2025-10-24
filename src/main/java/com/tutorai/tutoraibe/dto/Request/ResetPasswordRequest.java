@@ -1,12 +1,11 @@
 package com.tutorai.tutoraibe.dto.Request;
 
-import lombok.Getter;
-import lombok.Setter;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class ResetPasswordRequest {
     @NotBlank private String token;
-    @NotBlank private String newPassword;
+    @NotBlank @Size(min=6) private String newPassword;
 }

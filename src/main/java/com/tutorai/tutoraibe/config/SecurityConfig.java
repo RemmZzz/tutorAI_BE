@@ -1,6 +1,5 @@
 package com.tutorai.tutoraibe.config;
 
-import com.tutorai.tutoraibe.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,97 +10,58 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * ===============================================
- *             SECURITY CONFIGURATION
- * Cấu hình bảo mật tổng thể cho toàn bộ hệ thống
- * Phiên bản cập nhật theo danh sách module & endpoints
- * ===============================================
- */
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
-    private final CustomUserDetailsService customUserDetailsService;
+    private final OAuth2AuthenticationSuccessHandler oauth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Tắt CSRF vì đây là REST API
+                // CORS dùng CorsConfigurationSource bean; CSRF off cho REST
+                .cors(c -> {})
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
-                        // ========================
-                        // 1️ Public Endpoints (không yêu cầu JWT)
-                        // ========================
+                        // ---- Public (không cần JWT) ----
                         .requestMatchers(
-                                // Auth
-                                "/auth/**",
-                                // Tutors (tìm kiếm & xem hồ sơ)
-                                "/tutors/search",
-                                "/tutors/{id}",
-                                // Subjects
-                                "/subjects",
-                                "/subjects/{id}",
-                                // Courses (xem danh sách & chi tiết)
-                                "/courses",
-                                "/courses/{id}",
-                                "/courses/{id}/lessons",
-                                // Blogs & FAQs
-                                "/blogs/**",
-                                "/faqs/**",
-                                // Health check & Docs
+                                "/auth/**",                    // register, login, refresh, verify, forgot, reset
+                                "/oauth2/authorization/**",    // start Google OAuth
+                                "/login/oauth2/**",            // Google callback (mặc định)
                                 "/actuator/**",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/swagger-ui/**", "/v3/api-docs/**",
+                                "/error",
+                                // CORS preflight
+                                "/**",                         // nếu muốn chặt hơn: HttpMethod.OPTIONS, "/**"
+                                "/tutors/search", "/tutors/*",
+                                "/subjects", "/subjects/*",
+                                "/courses", "/courses/*", "/courses/*/lessons",
+                                "/blogs/**", "/faqs/**"
                         ).permitAll()
 
-                        // ========================
-                        // 2️ Admin Endpoints (chỉ ADMIN)
-                        // ========================
+                        // ---- Admin ----
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                        // ========================
-                        // 3️ Authenticated Endpoints (yêu cầu JWT)
-                        // ========================
-                        .requestMatchers(
-                                "/users/**",
-                                "/students/**",
-                                "/tutors/**",
-                                "/courses/**",
-                                "/enrollments/**",
-                                "/bookings/**",
-                                "/schedules/**",
-                                "/payments/**",
-                                "/transactions/**",
-                                "/reviews/**",
-                                "/ai/**",
-                                "/notifications/**",
-                                "/wishlist/**",
-                                "/certificates/**"
-                        ).authenticated()
-
-                        // ========================
-                        // 4️ Mặc định: chặn tất cả còn lại
-                        // ========================
-                        .anyRequest().denyAll()
+                        // ---- Mọi thứ còn lại cần JWT ----
+                        .anyRequest().authenticated()
                 )
 
-                // Stateless (chuẩn RESTful API)
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                // OAuth2 login (Google): sinh JWT & redirect về FE
+                .oauth2Login(oauth -> oauth.successHandler(oauth2SuccessHandler))
 
-                // Thêm JWT filter trước UsernamePasswordAuthenticationFilter
+                // Cho phép tạo session khi CẦN cho OAuth2; JWT API không dùng session
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+
+                // JWT filter trước UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // AuthenticationManager dùng trong AuthService (login)
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
+        return cfg.getAuthenticationManager();
     }
 }
